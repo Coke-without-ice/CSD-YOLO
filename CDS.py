@@ -27,22 +27,38 @@ class Conv(nn.Module):
 
     def forward_fuse(self, x):
         return self.act(self.conv(x))
-class CDS(nn.Module):
-    def __init__(self, in_channels, out_channels, factor=2):
-        super(CDS, self).__init__()
+        
+class CDS(nn.Module): 
+    def __init__(self, in_channels, out_channels, factor=2, reduction=16):
+        super().__init__()
         self.factor = factor
-        self.conv = Conv(in_channels, out_channels // (factor ** 2),
-                             3, 1, 1)
+        mid_channels = out_channels // (factor ** 2)
+
+        # 主分支
+        self.conv1 = nn.Conv2d(in_channels, mid_channels, 3, padding=1)
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(mid_channels, mid_channels, 3, padding=1),
+            nn.BatchNorm2d(mid_channels),  #归一化
+            nn.ReLU()
+        )
+
+        # 高频分支
+        self.hf_conv = nn.Sequential(
+            nn.Conv2d(in_channels, mid_channels, 3, padding=1),
+            nn.BatchNorm2d(mid_channels),
+            nn.Sigmoid()  # 直接输出注意力权重
+        )
 
     def forward(self, x):
-        x = self.conv(x)
-        B, C, H, W = x.shape
-        assert H % self.factor == 0 and W % self.factor == 0, "尺寸需能被factor整除"
-        # 正确分割空间维度为 (H//factor) × factor × (W//factor) × factor
-        x = x.view(B, C, H // self.factor, self.factor, W // self.factor, self.factor)
-        x = x.permute(0, 1, 3, 5, 2, 4).contiguous()
-        x = x.view(B, C * self.factor ** 2, H // self.factor, W // self.factor)
-        return x
+        hf = self.hf_conv(x)  # [0,1] 区间
+        x_main = self.conv1(x)
+        x_main = self.conv2(x_main) * (hf + 0.5)  # 避免全零抑制
+
+        # 空间重组（保持不变）
+        B, C, H, W = x_main.shape
+        x_main = x_main.view(B, C, H // self.factor, self.factor, W // self.factor, self.factor)
+        x_main = x_main.permute(0, 1, 3, 5, 2, 4).contiguous()
+        return x_main.view(B, -1, H // self.factor, W // self.factor)
 
 # 使用示例
 if __name__ == "__main__":
