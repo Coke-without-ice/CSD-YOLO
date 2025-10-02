@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from ultralytics.nn.modules.conv import autopad, Conv
 
+
 __all__ = ['SAConv2d', 'C3kSC2']
 
 class ConvAWS2d(nn.Conv2d):
@@ -251,4 +252,5 @@ if __name__ == "__main__":
     mobilenet_v1 = C3kSC2(64, 64)
 
     out = mobilenet_v1(image)
+
     print(out.size())
