@@ -12,6 +12,7 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
     return p
 
 
+
 class Conv(nn.Module):
     default_act = nn.SiLU()  # default activation
 
@@ -135,4 +136,5 @@ if __name__ == '__main__':
 #     def forward(self, x):
 #         x1 = self.cv3(self.cv2(x))
 #         x2 = self.cv1(x)
+
 #         return torch.cat([x1, x2], 1)
