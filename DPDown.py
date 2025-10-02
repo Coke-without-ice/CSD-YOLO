@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 __all__ = ['DPDown']
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -49,6 +50,7 @@ if __name__ == '__main__':
     x = torch.randn(1, 32, 16, 16)
     model = DPDown(32, 32)
     print(model(x).shape)
+
 
 
 
