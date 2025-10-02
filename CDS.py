@@ -3,7 +3,6 @@ import torch.nn as nn
 
 __all__ = ['CDS']
 
-
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
     # Pad to 'same' shape outputs
     if d > 1:
@@ -66,3 +65,4 @@ if __name__ == "__main__":
     module = CDS(in_channels=32, out_channels=32, factor=2)
     out = module(x)
     print(out.shape)  # 输出: torch.Size([1, 32, 16, 16])
+
